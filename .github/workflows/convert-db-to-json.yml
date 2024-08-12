@@ -1,0 +1,28 @@
+name: Convert DB to JSON
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 매일 UTC 00:00에 실행
+  workflow_dispatch:  # 수동 실행 옵션
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests
+    - name: Run conversion script
+      run: python src/convert_db_to_json.py
+    - name: Commit and push if changed
+      run: |
+        git config --global user.email "hty851111@naver.com"
+        git config --global user.name "GitHub Action"
+        git add convert/bookmarks.json
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Update bookmarks.json" && git push)
