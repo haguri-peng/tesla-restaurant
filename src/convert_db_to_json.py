@@ -16,7 +16,10 @@ conn = sqlite3.connect(':memory:')
 # 바이트 스트림에서 데이터베이스 로드
 buffer = io.BytesIO(response.content)
 buffer.seek(0)
-conn.cursor().executescript(f"RESTORE FROM '{buffer.getvalue().hex()}'")
+dest = conn.cursor()
+src = sqlite3.connect(buffer)
+src.backup(dest)
+src.close()
 
 cursor = conn.cursor()
 
