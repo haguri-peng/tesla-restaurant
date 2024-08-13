@@ -59,8 +59,14 @@ for table in tables:
 
 dest_conn.close()
 
+# 디렉토리 생성
+json_dir = 'json'
+if not os.path.exists(json_dir):
+    os.makedirs(json_dir)
+json_path = os.path.join(json_dir, 'bookmarks.json')
+
 # JSON 파일로 저장
-with open('json/bookmarks.json', 'w', encoding='utf-8') as f:
+with open(json_path, 'w', encoding='utf-8') as f:
     json.dump(data, f, ensure_ascii=False, indent=2)
 
-print("Conversion completed. JSON file saved as 'json/bookmarks.json'")
+print(f"Conversion completed. JSON file saved as '{json_path}'")
