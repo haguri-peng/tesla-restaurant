@@ -1,6 +1,7 @@
 """ convert_db_to_json """
 import sqlite3
 import json
+import io
 import requests
 
 # GitHub Pages에서 DB 파일 다운로드
@@ -11,7 +12,11 @@ response.raise_for_status()  # 오류 발생 시 예외 발생
 
 # 메모리에서 SQLite 데이터베이스 연결
 conn = sqlite3.connect(':memory:')
-conn.cursor().executescript(response.content)
+
+# 바이트 스트림에서 데이터베이스 로드
+buffer = io.BytesIO(response.content)
+buffer.seek(0)
+conn.cursor().executescript(f"RESTORE FROM '{buffer.getvalue().hex()}'")
 
 cursor = conn.cursor()
 
