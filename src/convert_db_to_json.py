@@ -1,7 +1,8 @@
 """ convert_db_to_json """
 import sqlite3
 import json
-import io
+import os
+import tempfile
 import requests
 
 # GitHub Pages에서 DB 파일 다운로드
@@ -10,18 +11,25 @@ db_url = 'https://raw.githubusercontent.com/haguri-peng/' \
 response = requests.get(db_url, timeout=10)
 response.raise_for_status()  # 오류 발생 시 예외 발생
 
-# 메모리에서 SQLite 데이터베이스 연결
-conn = sqlite3.connect(':memory:')
+# 임시 파일 생성
+with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+    temp_file.write(response.content)
+    temp_file_path = temp_file.name
 
-# 바이트 스트림에서 데이터베이스 로드
-buffer = io.BytesIO(response.content)
-buffer.seek(0)
-dest = conn.cursor()
-src = sqlite3.connect(buffer)
-src.backup(dest)
-src.close()
+# 소스 데이터베이스 연결 (임시 파일)
+src_conn = sqlite3.connect(temp_file_path)
 
-cursor = conn.cursor()
+# 메모리에 새 데이터베이스 연결
+dest_conn = sqlite3.connect(':memory:')
+
+# 소스에서 대상으로 데이터베이스 복사
+src_conn.backup(dest_conn)
+
+# 연결 닫기 및 임시 파일 삭제
+src_conn.close()
+os.unlink(temp_file_path)
+
+cursor = dest_conn.cursor()
 
 # 모든 테이블 이름 가져오기
 # 우선 [TESLA_RESTAURANT] 테이블만
@@ -49,7 +57,7 @@ for table in tables:
 
     data[table_name] = table_data
 
-conn.close()
+dest_conn.close()
 
 # JSON 파일로 저장
 with open('json/bookmarks.json', 'w', encoding='utf-8') as f:
