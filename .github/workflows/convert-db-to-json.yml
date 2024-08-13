@@ -27,4 +27,4 @@ jobs:
         git add json/bookmarks.json
         git diff --quiet && git diff --staged --quiet || (git commit -m "Update bookmarks.json" && git push)
       env:
-        GITHUB_TOKEN: ${{ secrets.PAT }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
