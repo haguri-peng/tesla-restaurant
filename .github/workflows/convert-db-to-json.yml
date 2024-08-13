@@ -19,7 +19,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install requests
     - name: Run conversion script
-      run: python src/convert_db_to_json.py
+      run: python $GITHUB_WORKSPACE/src/convert_db_to_json.py
     - name: Commit and push if changed
       run: |
         git config --global user.email "hty851111@naver.com"
