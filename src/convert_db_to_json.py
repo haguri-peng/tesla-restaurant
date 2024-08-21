@@ -5,11 +5,11 @@ import os
 import tempfile
 import requests
 
-# GitHub Pages에서 DB 파일 다운로드
+# GitHub에서 DB 파일 다운로드
 db_url = 'https://raw.githubusercontent.com/haguri-peng/' \
         'tesla-restaurant/master/db/TeslaRestaurant.db'
 response = requests.get(db_url, timeout=10)
-response.raise_for_status()  # 오류 발생 시 예외 발생
+response.raise_for_status() # 오류 발생 시 예외 발생
 
 # 임시 파일 생성
 with tempfile.NamedTemporaryFile(delete=False) as temp_file:
@@ -32,8 +32,9 @@ os.unlink(temp_file_path)
 cursor = dest_conn.cursor()
 
 # 모든 테이블 이름 가져오기
-# 우선 [TESLA_RESTAURANT] 테이블만
-cursor.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'TESLA_RESTAURANT';")
+# 대상 테이블(TESLA_RESTAURANT, TESLA_RESTAURANT_X_DATA)
+cursor.execute("SELECT name FROM sqlite_master WHERE type = 'table' " \
+               "AND name IN ('TESLA_RESTAURANT', 'TESLA_RESTAURANT_X_DATA')")
 tables = cursor.fetchall()
 
 data = {}
@@ -41,10 +42,13 @@ data = {}
 # 각 테이블의 데이터를 JSON으로 변환
 for table in tables:
     table_name = table[0]
-    # cursor.execute(f"SELECT * FROM {table_name}")
-    # TEST (TESLA_RESTAURANT 테이블만 들어온다.)
-    cursor.execute(f"SELECT * FROM {table_name} " \
-            "WHERE base_dt = (SELECT MAX(base_dt) FROM TESLA_RESTAURANT)")
+    if table_name == 'TESLA_RESTAURANT':
+        # 'TESLA_RESTAURANT' 테이블에서는 가장 최근에 작업한 내용만 가져온다.
+        cursor.execute(f"SELECT * FROM {table_name} " \
+                        "WHERE base_dt = (SELECT MAX(base_dt) FROM TESLA_RESTAURANT)")
+    elif table_name == 'TESLA_RESTAURANT_X_DATA':
+        cursor.execute(f"SELECT * FROM {table_name}")
+
     rows = cursor.fetchall()
 
     # 컬럼 이름 가져오기
