@@ -42,12 +42,9 @@ data = {}
 # 각 테이블의 데이터를 JSON으로 변환
 for table in tables:
     table_name = table[0]
-    if table_name == 'TESLA_RESTAURANT':
-        # 'TESLA_RESTAURANT' 테이블에서는 가장 최근에 작업한 내용만 가져온다.
-        cursor.execute(f"SELECT * FROM {table_name} " \
-                        "WHERE base_dt = (SELECT MAX(base_dt) FROM TESLA_RESTAURANT)")
-    elif table_name == 'TESLA_RESTAURANT_X_DATA':
-        cursor.execute(f"SELECT * FROM {table_name}")
+    # 가장 최근에 작업한 내용만 가져온다.
+    cursor.execute(f"SELECT * FROM {table_name} " \
+                    "WHERE base_dt = (SELECT MAX(base_dt) FROM TESLA_RESTAURANT)")
 
     rows = cursor.fetchall()
 
